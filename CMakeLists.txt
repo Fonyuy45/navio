@@ -27,6 +27,7 @@ add_executable(${PROJECT_NAME}
     src/feature_manager.cpp
     src/frame.cpp
     src/trajectory.cpp
+    src/motion_estimator.cpp
     src/visualiser.cpp
 )
 
