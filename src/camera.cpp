@@ -12,8 +12,8 @@ namespace navio {
  * @param depth_scale  Converts raw depth integer to metres (e.g. 1000.0 for
  *                     millimetre-encoded depth maps)
  */
-Camera::Camera(double fx, double fy, double cx, double cy, double depth_scale)
-    : fx_{fx}, fy_{fy}, cx_{cx}, cy_{cy}, depth_scale_{depth_scale}
+Camera::Camera(double fx, double fy, double cx, double cy, double depth_scale, double k1, double k2, double p1, double p2, double k3)
+    : fx_{fx}, fy_{fy}, cx_{cx}, cy_{cy}, depth_scale_{depth_scale}, k1_{k1}, k2_{k2}, p1_{p1}, p2_{p2}, k3_{k3}
 {}
 
 /**
@@ -57,6 +57,23 @@ Eigen::Vector2d Camera::project(const Eigen::Vector3d& point) const
  * @param depth  Raw depth value from the depth image (integer units)
  * @return       3D point in camera coordinate frame (metres)
  */
+
+cv::Mat Camera::getIntrinsicMatrix() const {
+    // Construct and return the 3x3 K matrix on the fly
+    cv::Mat K = (cv::Mat_<double>(3, 3) << 
+        fx_, 0.0, cx_,
+        0.0, fy_, cy_,
+        0.0, 0.0, 1.0);
+    return K;
+}
+
+cv::Mat Camera::getDistCoeffs() const {
+    // Construct and return the 1x5 distortion matrix
+    cv::Mat D = (cv::Mat_<double>(1, 5) << k1_, k2_, p1_, p2_, k3_);
+    return D;
+}
+
+
 Eigen::Vector3d Camera::unproject(const Eigen::Vector2d& pixel, double depth) const
 {
     // Extract pixel coordinates for readability
