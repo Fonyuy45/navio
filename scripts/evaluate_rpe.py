@@ -59,9 +59,9 @@ def transform44(l):
     nq = numpy.dot(q, q)
     if nq < _EPS:
         return numpy.array((
-        (                1.0,                 0.0,                 0.0, t[0])
-        (                0.0,                 1.0,                 0.0, t[1])
-        (                0.0,                 0.0,                 1.0, t[2])
+        (                1.0,                 0.0,                 0.0, t[0]),
+        (                0.0,                 1.0,                 0.0, t[1]),
+        (                0.0,                 0.0,                 1.0, t[2]),
         (                0.0,                 0.0,                 0.0, 1.0)
         ), dtype=numpy.float64)
     q *= numpy.sqrt(2.0 / nq)
