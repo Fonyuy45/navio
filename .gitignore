@@ -3,6 +3,7 @@ build/
 rgbd_dataset_freiburg1_xyz/
 *.o
 *.bak
+__pycache__/
 *.a
 *.so
 estimated_trajectory.txt
