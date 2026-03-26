@@ -15,10 +15,7 @@ public:
     
     Eigen::Isometry3d getCurrentPose () const;
 
-    
-
     const std::vector<Eigen::Isometry3d, Eigen::aligned_allocator<Eigen::Isometry3d>>& getTrajectory() const;
-
 
 private:
     std::vector<Eigen::Isometry3d, Eigen::aligned_allocator<Eigen::Isometry3d>> pose_list_;
