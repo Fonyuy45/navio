@@ -84,43 +84,61 @@ std::vector<Match3D2D> FeatureManager::computeCorrespondences(
 
     const std::vector<cv::DMatch> good_matches{filterMatches(knn_matches)};
 
-    // --- Step 4: Lift matched keypoints to 3D and build correspondences ------
+// --- Step 4: Lift matched keypoints to 3D and build correspondences ------
+    
+    // Extract camera matrices to handle the distortion
+    cv::Mat K = camera.getIntrinsicMatrix();
+    cv::Mat D = camera.getDistCoeffs();
+
+    // 4a. Gather all the distorted 2D pixels for Frame A
+    std::vector<cv::Point2f> ptsA_distorted;
+    ptsA_distorted.reserve(good_matches.size());
+    for (const auto& match : good_matches) {
+        ptsA_distorted.push_back(keypoints1[match.queryIdx].pt);
+    }
+
+    // 4b. UNDISTORT them mathematically so our 3D points form straight geometry!
+    std::vector<cv::Point2f> ptsA_undistorted;
+    // We pass K twice so the output points are in standard pixel coordinates, not normalized coordinates
+    cv::undistortPoints(ptsA_distorted, ptsA_undistorted, K, D, cv::noArray(), K);
+
+    // 4c. Build the final 3D-2D matches
     std::vector<Match3D2D> result;
     result.reserve(good_matches.size());
 
-    for (const auto& match : good_matches) {
+    for (size_t i = 0; i < good_matches.size(); ++i) {
+        const auto& match = good_matches[i];
+        
+        const cv::Point2f& distorted_pixelA = ptsA_distorted[i];
+        const cv::Point2f& undistorted_pixelA = ptsA_undistorted[i];
+        const cv::Point2f& pixelB = keypoints2[match.trainIdx].pt;
 
-        // Retrieve pixel locations of the matched keypoints
-        const cv::Point2f& pixelA{keypoints1[match.queryIdx].pt};
-        const cv::Point2f& pixelB{keypoints2[match.trainIdx].pt};
-
-        // Look up raw depth at the matched pixel in frameA
-        // cv::Mat::at<>(row, col) — pt.y is row, pt.x is col
+        // Look up depth using the DISTORTED pixel (because the depth map itself is distorted)
+        // Use cvRound to prevent grabbing background depths near object edges!
         const auto raw_depth = frameA.getDepthImage().at<uint16_t>(
-            static_cast<int>(pixelA.y),
-            static_cast<int>(pixelA.x));
+            cvRound(distorted_pixelA.y),
+            cvRound(distorted_pixelA.x));
 
-        // Skip pixels with invalid depth — sensor cannot measure this point
+        // Skip invalid depth holes
         if (raw_depth == 0) {
             continue;
         }
 
         const double depth{static_cast<double>(raw_depth)};
 
-        // Unproject the 2D keypoint and depth into a 3D camera-frame point
-        // pixel convention: (u, v) = (col, row) = (x, y)
-        const Eigen::Vector2d pixel_A{
-            static_cast<double>(pixelA.x),
-            static_cast<double>(pixelA.y)};
+        // Unproject using the UNDISTORTED pixel to create perfect physical 3D geometry
+        const Eigen::Vector2d ideal_pixel_A{
+            static_cast<double>(undistorted_pixelA.x),
+            static_cast<double>(undistorted_pixelA.y)};
 
-        const Eigen::Vector3d point3d{camera.unproject(pixel_A, depth)};
+        const Eigen::Vector3d point3d{camera.unproject(ideal_pixel_A, depth)};
 
-        // Store the 2D location in frameB as the target projection
-        const Eigen::Vector2d pixel_B{
+        // Target pixel in Frame B (solvePnP will handle its distortion internally later)
+        const Eigen::Vector2d target_pixel_B{
             static_cast<double>(pixelB.x),
             static_cast<double>(pixelB.y)};
 
-        result.push_back(Match3D2D{point3d, pixel_B});
+        result.push_back(Match3D2D{point3d, target_pixel_B});
     }
 
     return result;
