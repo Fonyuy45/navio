@@ -97,13 +97,13 @@ int main() {
                           << " | Correspondences: " << correspondences.size() << "\n";
             } 
 
-            if (cv::waitKey(33) == 'q') break;
+            if (cv::waitKey(1) == 'q') break;
 
             // Shift the current frame to become the previous frame for the next loop
             frame_prev = frame_curr;
         }
 
-        std::ofstream traj_file ("../estimated_trajectory.txt");
+        std::ofstream traj_file ("../results/estimated_trajectory.txt");
         const auto& poses = trajectory.getTrajectory();
 
         for (size_t i = 0 ; i < poses.size(); ++i){
