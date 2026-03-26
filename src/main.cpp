@@ -76,6 +76,7 @@ int main() {
 
         // 5. Main Odometry Loop (Start at Index 1!)
         for (size_t i = 1; i < rgb_paths.size(); ++i) {
+            
 
             cv::Mat rgb_curr = cv::imread(rgb_paths[i], cv::IMREAD_COLOR);
             cv::Mat depth_curr = cv::imread(depth_paths[i], cv::IMREAD_ANYDEPTH);
@@ -120,6 +121,7 @@ int main() {
             <<q.x() << " " << q.y() << " " << q.z() <<" " << q.w() 
             << "\n";
         }
+        traj_file.close();
 
         std::cout << " Trajectory saved to estimated_trajectory.txt\n";
         
