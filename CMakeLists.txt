@@ -18,6 +18,9 @@ find_package(Eigen3 REQUIRED)
 
 # Locate OpenCV on the system - REQUIRED means CMake will error if not found
 find_package(OpenCV REQUIRED)
+#Locate the yaml-cpp
+find_package(yaml-cpp REQUIRED)
+
 
 # Define the executable target and list every source file that compiles into it
 # ${PROJECT_NAME} expands to "navio" - keeps target name consistent with project
@@ -43,4 +46,5 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME} PRIVATE
     Eigen3::Eigen
     ${OpenCV_LIBS}
+    yaml-cpp
 )
