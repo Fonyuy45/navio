@@ -1,6 +1,6 @@
 build/
 .vscode/
-echo "rgbd_dataset_freiburg1_xyz/" >> .gitignore
+rgbd_dataset_freiburg1_xyz/
 *.o
 *.a
 *.so
