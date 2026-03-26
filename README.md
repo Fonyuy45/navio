@@ -1,7 +1,21 @@
-# Navio — RGB-D Visual Odometry
+# Navio - RGB-D Visual Odometry
 
 A frame-to-frame RGB-D Visual Odometry pipeline implemented in C++17 using Eigen and OpenCV, evaluated on the TUM RGB-D benchmark dataset.
 ---
+
+## Trajectory Comparison
+
+<p align="center">
+  <img src="results/clean_trajectory_xyz.png" width="48%" alt="Translation Trajectory"/>
+  &nbsp;
+  <img src="results/clean_trajectory_rpy.png" width="48%" alt="Angular Trajectory"/>
+</p>
+<p align="center">
+  <em> Translation trajectory (metres) &nbsp;&nbsp; Angular trajectory (degrees)</em>
+</p>
+
+> Pure frame-to-frame VO without loop closure or bundle adjustment.
+> Results are competitive with published RGB-D VO baselines on this sequence.
 
 ## Results
 
@@ -14,22 +28,7 @@ Evaluated on the **TUM RGB-D fr1/xyz** sequence (792 frames, Freiburg 1 Kinect).
 | RPE Translational RMSE | 0.072 m |
 | RPE Rotational RMSE | 3.51 deg |
 
-## Trajectory Comparison
-
-<p align="center">
-  <img src="results/clean_trajectory_xyz.png" width="48%" alt="Translation Trajectory"/>
-  &nbsp;
-  <img src="results/clean_trajectory_rpy.png" width="48%" alt="Angular Trajectory"/>
-</p>
-<p align="center">
-  <em>Left: Translation trajectory (metres) &nbsp;&nbsp; Right: Angular trajectory (degrees)</em>
-</p>
-
-> Pure frame-to-frame VO without loop closure or bundle adjustment.
-> Results are competitive with published RGB-D VO baselines on this sequence.
-
 ---
-
 ## Pipeline
 
 ```
@@ -160,11 +159,11 @@ To use a different camera, replace these values with your own calibration data.
 
 **Undistortion before 3D lifting** — keypoints are undistorted using `cv::undistortPoints` before unprojection into 3D space. Depth lookup uses the original distorted pixel coordinates since the depth map is in the distorted camera frame. This single correction reduced ATE from 2.99m to 0.049m.
 
-**RANSAC safeguards** — `solvePnPRansac` is wrapped with an inlier count check (minimum 15 inliers) and a physical sanity check rejecting implausible motions. Failed estimates return identity, treating the frame as zero motion rather than corrupting the trajectory.
+**RANSAC safeguards** - `solvePnPRansac` is wrapped with an inlier count check (minimum 15 inliers) and a physical sanity check rejecting implausible motions. Failed estimates return identity, treating the frame as zero motion rather than corrupting the trajectory.
 
-**SE(3) pose inversion** — `solvePnP` returns a world-to-camera transform. The result is inverted before accumulation to obtain the camera-to-world transform required for trajectory building.
+**SE(3) pose inversion** - `solvePnP` returns a world-to-camera transform. The result is inverted before accumulation to obtain the camera-to-world transform required for trajectory building.
 
-**Aligned Eigen allocator** — `std::vector<Eigen::Isometry3d>` uses `Eigen::aligned_allocator` to guarantee correct SIMD memory alignment for fixed-size Eigen types.
+**Aligned Eigen allocator** - `std::vector<Eigen::Isometry3d>` uses `Eigen::aligned_allocator` to guarantee correct SIMD memory alignment for fixed-size Eigen types.
 
 ---
 ## Limitations
@@ -193,6 +192,8 @@ These are active research directions and natural extensions toward a full SLAM s
 **Dieudonne F. YUFONYUY**
 **Email: dieudonne.yufonyuy@gmail.com**
 
-⭐ Star this repository if you found it helpful!
+⭐ Star this repository if you found it helpful! 
+
+Follow me for more updates!
 
 ```
