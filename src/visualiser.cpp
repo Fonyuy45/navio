@@ -71,8 +71,8 @@ cv::Mat Visualiser::drawTrajectory(
     const std::vector<Eigen::Isometry3d,
                        Eigen::aligned_allocator<Eigen::Isometry3d>>& pose_list) const
 {
-    // Black 600x600 three-channel canvas — large enough for most short sequences
-    cv::Mat plot = cv::Mat::zeros(600, 600, CV_8UC3);
+    //  white three-channel canvas — large enough for most short sequences
+    cv::Mat plot(1000, 1000, CV_8UC3, cv::Scalar(255, 255, 255));
 
     // Canvas origin offset — maps the world origin (0,0) to the canvas centre
     const int    offset_x{300};
