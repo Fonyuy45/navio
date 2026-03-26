@@ -2,6 +2,7 @@ build/
 .vscode/
 rgbd_dataset_freiburg1_xyz/
 *.o
+*.bak
 *.a
 *.so
 estimated_trajectory.txt
