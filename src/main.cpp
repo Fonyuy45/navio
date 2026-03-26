@@ -4,7 +4,7 @@
 #include "trajectory.hpp"
 #include "motion_estimator.hpp"
 #include "visualiser.hpp"
-
+#include <iomanip>
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
@@ -51,6 +51,7 @@ int main() {
         std::vector<std::string> rgb_paths;
         std::vector<std::string> depth_paths;
         std::string line;
+        std::vector<double> timestamps; 
 
         while (std::getline(assoc_file, line)) {
             if (line.empty() || line[0] == '#') continue;
@@ -58,10 +59,12 @@ int main() {
             std::istringstream ss(line);
             std::string ts_rgb, rgb_file, ts_depth, depth_file;
             
+            
             // Only push if we successfully read all 4 items
             if (ss >> ts_rgb >> rgb_file >> ts_depth >> depth_file) {
                 rgb_paths.push_back("../rgbd_dataset_freiburg1_xyz/" + rgb_file);
                 depth_paths.push_back("../rgbd_dataset_freiburg1_xyz/" + depth_file);
+                timestamps.push_back(std::stod(ts_rgb));
             }
         }
         std::cout << "Loaded  " << rgb_paths.size() << "  frame pairs \n";
@@ -98,6 +101,27 @@ int main() {
             // Shift the current frame to become the previous frame for the next loop
             frame_prev = frame_curr;
         }
+
+        std::ofstream traj_file ("../estimated_trajectory.txt");
+        const auto& poses = trajectory.getTrajectory();
+
+        for (size_t i = 0 ; i < poses.size(); ++i){
+
+
+            Eigen::Vector3d t = poses[i].translation();
+
+
+            Eigen::Quaterniond q (poses[i].rotation());
+
+            // write in TUM format: timestamp tx, ty, qx,qy,qz, qw
+            traj_file << std::fixed << std::setprecision(6)
+            << timestamps[i] << " "
+            << t.x() << " " << t.y() << " " << t.z() << " "
+            <<q.x() << " " << q.y() << " " << q.z() <<" " << q.w() 
+            << "\n";
+        }
+
+        std::cout << " Trajectory saved to estimated_trajectory.txt\n";
         
         cv::waitKey(0);
 
