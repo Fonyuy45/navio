@@ -75,12 +75,12 @@ cv::Mat Visualiser::drawTrajectory(
     cv::Mat plot(1000, 1000, CV_8UC3, cv::Scalar(255, 255, 255));
 
     // Canvas origin offset — maps the world origin (0,0) to the canvas centre
-    const int    offset_x{300};
-    const int    offset_y{300};
+    const int    offset_x{500};
+    const int    offset_y{500};
 
     // Scale factor — pixels per metre. Increase for small motions, decrease
     // for large environments
-    const double scale{50.0};
+    const double scale{200.0};
 
     // Line rendering parameters
     const int    thickness{2};
