@@ -196,4 +196,8 @@ These are active research directions and natural extensions toward a full SLAM s
 
 Follow me for more updates!
 
+## License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
 ```
