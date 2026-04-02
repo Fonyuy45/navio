@@ -59,8 +59,12 @@ public:
      * @param frame_id     ID of the frame in which it was observed
      * @param pixel        2D pixel coordinate of the observation (u, v)
      */
+/**
+     * @brief Appends a new observation and updates the representative descriptor.
+     */
     void addObservation(int landmark_id, int frame_id,
-                        const Eigen::Vector2d& pixel);
+                        const Eigen::Vector2d& pixel,
+                        const cv::Mat& new_descriptor); // <-- Added parameter
 
     /**
      * @brief Returns all landmarks observed in any of the given frames.
@@ -98,6 +102,9 @@ private:
 
     /// Auto-incrementing counter for generating unique landmark IDs
     int next_id_{0};
+
+    // Helper function to run the median distance algorithm
+    void updateRepresentativeDescriptor(int landmark_id);
 };
 
 } // namespace navio
