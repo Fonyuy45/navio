@@ -1,6 +1,7 @@
 #pragma once
 #include "camera.hpp"
 #include "frame.hpp"
+#include "landmark_map.hpp"
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -15,6 +16,7 @@ namespace navio {
 
         Eigen::Vector3d point3d_A;
         Eigen::Vector2d point2d_B;
+        int landmark_id;
     };
 
     
@@ -26,6 +28,9 @@ public:
 
 
     std::vector<Match3D2D> computeCorrespondences(const Frame& frameA, const Frame& frameB, const Camera& camera) const;
+
+    std::vector<std::pair<int, Eigen::Vector2d>> trackLandmarks( const Frame& current_frame,  LandmarkMap& map, const Camera& camera) const;
+
 
 
 

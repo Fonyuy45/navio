@@ -95,6 +95,8 @@ public:
      */
     size_t size() const;
 
+    int nextId() { return next_id_++; }
+
 private:
 
     /// Internal storage — keyed by landmark ID for O(1) lookup
