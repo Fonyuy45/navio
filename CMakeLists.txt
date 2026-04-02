@@ -21,6 +21,10 @@ find_package(OpenCV REQUIRED)
 #Locate the yaml-cpp
 find_package(yaml-cpp REQUIRED)
 
+#Locate the ceres lib
+
+find_package(Ceres REQUIRED)
+
 
 # Define the executable target and list every source file that compiles into it
 # ${PROJECT_NAME} expands to "navio" - keeps target name consistent with project
@@ -48,4 +52,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Eigen3::Eigen
     ${OpenCV_LIBS}
     yaml-cpp
+    Ceres::ceres
 )
