@@ -32,6 +32,7 @@ add_executable(${PROJECT_NAME}
     src/trajectory.cpp
     src/motion_estimator.cpp
     src/visualiser.cpp
+    src/landmark_map.cpp
 )
 
 # Tell the compiler where to find header files in include/
