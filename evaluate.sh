@@ -22,4 +22,4 @@ python3 scripts/evaluate_ate.py \
     --plot results/ate_plot.png  # <-- Added a bonus flag to draw a graph!
     
 echo "=================================================="
-echo " Evaluation Complete! (Check results/ directory for ate_plot.png)"
+echo " Evaluation Complete! (Check results_v2/ directory for ate_plot.png)"
