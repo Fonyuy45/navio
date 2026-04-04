@@ -7,106 +7,157 @@
 namespace navio {
 
 /**
- * @brief Persistent 3D landmark map for the visual odometry pipeline.
+ * @brief Persistent 3D landmark map for the visual odometry and BA pipeline.
  *
- * LandmarkMap maintains a collection of 3D landmarks observed across multiple
- * frames. It serves as the memory of the pipeline — bridging the VO front-end
- * (feature detection and matching) with the BA back-end (pose and landmark
- * optimisation).
+ * LandmarkMap is the memory of the Navio system. It stores all 3D landmarks
+ * observed across the lifetime of the sequence and provides efficient queries
+ * for both the BA back-end and the feature matching front-end.
  *
- * Each landmark has a unique integer ID, a 3D position in world space, and a
- * list of 2D observations recording which frames saw it and at which pixel.
+ * Architecture
+ * ------------
+ * Two internal data structures work together:
+ *
+ * `landmarks_` — primary storage keyed by landmark ID. O(1) lookup by ID.
+ *
+ * `frame_to_landmark_ids_` — reverse index mapping frame ID to the list of
+ *   landmark IDs observed in that frame. This makes sliding window queries
+ *   O(k) where k is the window size, rather than O(N) where N is the total
+ *   number of landmarks. Without this index, every window query would require
+ *   scanning the entire map — a bottleneck that causes cascade failure as the
+ *   map grows beyond a few thousand landmarks.
+ *
+ * Thread safety
+ * -------------
+ * This class is NOT thread-safe. All calls must be made from a single thread.
+ * A future version may add mutex protection for parallel front-end/back-end.
  */
 class LandmarkMap {
 public:
+    LandmarkMap() = default;
+
+    // Stage 1: Core Lifecycle
+
 
     /**
-     * @brief Constructs an empty LandmarkMap with no landmarks.
-     */
-    LandmarkMap();
-
-    /**
-     * @brief Inserts a new landmark into the map.
-     *
-     * The landmark must already have a valid ID assigned. Use this method
-     * when a feature is observed for the first time and a new Landmark struct
-     * has been constructed with an initial 3D position and first observation.
-     *
-     * @param landmark  The landmark to insert
+     * @brief Inserts a new landmark into the map and updates the reverse index.
+     * @param landmark  Fully constructed Landmark with at least one observation.
      */
     void addLandmark(const Landmark& landmark);
 
     /**
-     * @brief Retrieves a landmark by its unique ID.
-     *
-     * Returns a const reference to avoid copying and to prevent external
-     * modification of the internal map state.
-     *
-     * @param landmark_id  Unique integer ID of the landmark to retrieve
-     * @return             Const reference to the requested Landmark
-     * @throws             std::out_of_range if the ID does not exist
+     * @brief Retrieves a landmark by ID.
+     * @throws std::out_of_range if the ID does not exist.
      */
     const Landmark& getLandmark(int landmark_id) const;
 
     /**
+     * @brief Overwrites the 3D position of an existing landmark.
+     *
+     * Called by BundleAdjuster after optimisation to write back the
+     * refined world-space position computed by Ceres.
+     *
+     * @param landmark_id   ID of the landmark to update.
+     * @param new_position  Optimised world-space position (metres).
+     */
+    void updatePosition(int landmark_id, const Eigen::Vector3d& new_position);
+
+    /**
      * @brief Appends a new observation to an existing landmark.
      *
-     * Called when a previously seen landmark is observed again in a new frame.
-     * Adds the frame ID and pixel coordinate to the landmark's observation list
-     * without creating a duplicate landmark entry.
+     * Stores the observation, updates the descriptor history, and
+     * re-elects the representative descriptor using the median
+     * Hamming distance algorithm. Also updates the reverse index.
      *
-     * @param landmark_id  ID of the landmark that was observed
-     * @param frame_id     ID of the frame in which it was observed
-     * @param pixel        2D pixel coordinate of the observation (u, v)
+     * @param landmark_id    ID of the landmark that was observed.
+     * @param frame_id       Frame in which it was observed.
+     * @param pixel_undist   Undistorted pixel coordinate (u, v).
+     * @param new_descriptor 1x32 CV_8U ORB descriptor from this observation.
      */
-/**
-     * @brief Appends a new observation and updates the representative descriptor.
-     */
-    void addObservation(int landmark_id, int frame_id,
-                        const Eigen::Vector2d& pixel,
-                        const cv::Mat& new_descriptor); // <-- Added parameter
+    void addObservation(int                    landmark_id,
+                        int                    frame_id,
+                        const Eigen::Vector2d& pixel_undist,
+                        const cv::Mat&         new_descriptor);
+
+    // Stage 2: Sliding Window Queries
+
 
     /**
-     * @brief Returns all landmarks observed in any of the given frames.
+     * @brief Heavy query — returns full landmark copies for all frames in window.
      *
-     * Used by the BA back-end to retrieve the subset of landmarks relevant
-     * to a sliding window of keyframes. A landmark is included if at least
-     * one of its observations belongs to one of the queried frame IDs.
+     * Used exclusively by BundleAdjuster which needs complete landmark data
+     * (position, observations, descriptors) to construct the Ceres factor graph.
      *
-     * @param frame_ids  List of frame IDs defining the query window
-     * @return           Vector of landmarks observed in those frames
+     * Uses the reverse index for O(k) performance where k is the window size.
+     *
+     * @param frame_ids  List of keyframe IDs defining the local window.
+     * @return           Vector of full Landmark copies — one per unique landmark.
      */
-    std::vector<Landmark> getLandmarksInFrames(
-        const std::vector<int>& frame_ids) const;
+    std::vector<Landmark> getLandmarksInFrames(const std::vector<int>& frame_ids) const;
 
     /**
-     * @brief Returns a const reference to the entire landmark map.
+     * @brief Lightweight query — returns only landmark IDs for frames in window.
      *
-     * Provides read-only access to all landmarks for visualisation,
-     * evaluation, or export. The const reference avoids copying the
-     * potentially large map.
+     * Used by FeatureManager::matchLocalMap to restrict descriptor matching
+     * to the local window rather than the full global map. Returning only IDs
+     * avoids copying large descriptor matrices and observation lists — the
+     * caller fetches only the representative descriptor it needs via getLandmark.
      *
-     * @return  Const reference to the internal unordered_map of landmarks
+     * This is the key architectural decision that keeps matching O(k) rather
+     * than O(N) as the map grows.
+     *
+     * @param frame_ids  List of keyframe IDs defining the local window.
+     * @return           Vector of unique landmark IDs observed in those frames.
+     */
+    std::vector<int> getLandmarkIdsInFrames(const std::vector<int>& frame_ids) const;
+
+
+    // Stage 3: Map Hygiene
+  
+    /**
+     * @brief Removes landmarks that have not been observed recently.
+     *
+     * A landmark is culled if its most recent observation is older than
+     * max_age_frames AND it has fewer than 3 total observations. This removes
+     * transient noise points while preserving well-established landmarks.
+     *
+     * Called periodically (every 20 frames) to prevent unbounded map growth.
+     *
+     * @param current_frame_id  The current frame index.
+     * @param max_age_frames    Frames since last observation before culling.
+     */
+    void cullStaleLandmarks(int current_frame_id, int max_age_frames);
+
+    /**
+     * @brief Returns a const reference to the full internal landmark map.
      */
     const std::unordered_map<int, Landmark>& getAllLandmarks() const;
 
     /**
      * @brief Returns the total number of landmarks currently in the map.
      */
-    size_t size() const;
+    std::size_t size() const;
 
+    /**
+     * @brief Returns the next available unique landmark ID and increments counter.
+     *
+     * Inline for performance — called once per new landmark creation.
+     */
     int nextId() { return next_id_++; }
 
 private:
-
-    /// Internal storage — keyed by landmark ID for O(1) lookup
-    std::unordered_map<int, Landmark> landmarks_;
-
-    /// Auto-incrementing counter for generating unique landmark IDs
-    int next_id_{0};
-
-    // Helper function to run the median distance algorithm
+    /**
+     * @brief Re-elects the representative descriptor after a new observation.
+     *
+     * Computes pairwise Hamming distances between all stored descriptors and
+     * selects the one with the minimum median distance — the most "central"
+     * descriptor in the appearance space. This is more robust than keeping
+     * the first or most recent descriptor as viewpoint changes over time.
+     */
     void updateRepresentativeDescriptor(int landmark_id);
+
+    std::unordered_map<int, Landmark>            landmarks_;
+    std::unordered_map<int, std::vector<int>>    frame_to_landmark_ids_; ///< Reverse index
+    int                                          next_id_{0};
 };
 
 } // namespace navio
