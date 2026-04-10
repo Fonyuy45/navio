@@ -19,14 +19,32 @@ A frame-to-frame RGB-D Visual Odometry pipeline implemented in C++17 using Eigen
 
 ## Results
 
-Evaluated on the **TUM RGB-D fr1/xyz** sequence (792 frames, Freiburg 1 Kinect).
+### V1 — Frame-to-Frame Visual Odometry
+
+Evaluated on TUM RGB-D fr1/xyz (792 frames).
 
 | Metric | Value |
 |--------|-------|
 | ATE RMSE | 0.049 m |
-| ATE Mean | 0.046 m |
-| RPE Translational RMSE | 0.072 m |
+| RPE Translational RMSE | 0.071 m |
 | RPE Rotational RMSE | 3.51 deg |
+
+### V2 — Visual Odometry with Local Bundle Adjustment
+
+| Metric | Value |
+|--------|-------|
+| ATE RMSE | 0.021 m |
+| RPE Translational RMSE | 0.031 m |
+| RPE Rotational RMSE | 1.44 deg |
+| Processing Speed | 38 fps |
+
+BA reduces ATE by 57% compared to pure VO.
+V2 achieves results competitive with ORB-SLAM2 (0.016m ATE) 
+using a simpler pipeline without loop closure.
+
+### Trajectory Comparison (V2 vs Ground Truth)
+![XYZ Translation](results_v2/clean_trajectory_xyz.png)
+![RPY Rotation](results_v2/clean_trajectory_rpy.png)
 
 ---
 ## Pipeline
