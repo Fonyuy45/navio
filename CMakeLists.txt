@@ -1,33 +1,28 @@
 # Minimum CMake version required to process this file
 cmake_minimum_required(VERSION 3.22.1)
 
-# Declares the project name and version - VERSION keyword must be uppercase
+# Project name and version — VERSION keyword must be uppercase
 project(navio VERSION 1.0)
 
-# Tell CMake to compile all targets using the C++17 standard
+# Release build with O2 optimisation — essential for real-time performance.
+# O2 enables vectorisation and inlining without the aggressive transformations
+# of O3 that can occasionally produce unexpected behaviour in numeric code.
+set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+
+# C++17 standard — required for structured bindings, std::clamp, if constexpr
 set(CMAKE_CXX_STANDARD 17)
-
-# Make C++17 a hard requirement - do not silently fall back to older standard
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)  # Enforce strict standard, disable GNU extensions
 
-# Disable compiler-specific extensions - enforces strict portable C++17
-set(CMAKE_CXX_EXTENSIONS OFF)
+# Dependencies
+find_package(Eigen3    REQUIRED)  # Linear algebra and SE(3) transforms
+find_package(OpenCV    REQUIRED)  # Feature detection, PnP, image I/O
+find_package(yaml-cpp  REQUIRED)  # Camera parameter loading from YAML
+find_package(Ceres     REQUIRED)  # Nonlinear least squares for Bundle Adjustment
 
-# Locate Eigen3 on the system - REQUIRED means CMake will error if not found
-find_package(Eigen3 REQUIRED)
-
-# Locate OpenCV on the system - REQUIRED means CMake will error if not found
-find_package(OpenCV REQUIRED)
-#Locate the yaml-cpp
-find_package(yaml-cpp REQUIRED)
-
-#Locate the ceres lib
-
-find_package(Ceres REQUIRED)
-
-
-# Define the executable target and list every source file that compiles into it
-# ${PROJECT_NAME} expands to "navio" - keeps target name consistent with project
+# Executable target — all source files listed explicitly.
+# CMake only recompiles files that have changed (incremental build).
 add_executable(${PROJECT_NAME}
     src/main.cpp
     src/camera.cpp
@@ -37,17 +32,15 @@ add_executable(${PROJECT_NAME}
     src/motion_estimator.cpp
     src/visualiser.cpp
     src/landmark_map.cpp
+    src/bundle_adjuster.cpp
 )
 
-# Tell the compiler where to find header files in include/
-# PRIVATE means only this target needs these include paths
+# Include paths — PRIVATE means only this target sees these directories
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
 
-# Link Eigen and OpenCV libraries to your executable
-# Eigen3::Eigen is a modern CMake target that also carries include paths
-# ${OpenCV_LIBS} is the variable populated by find_package(OpenCV)
+# Link libraries — Eigen3::Eigen carries its own include paths automatically
 target_link_libraries(${PROJECT_NAME} PRIVATE
     Eigen3::Eigen
     ${OpenCV_LIBS}
