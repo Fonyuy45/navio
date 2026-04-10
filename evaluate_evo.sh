@@ -13,7 +13,7 @@ echo "=================================================="
 mkdir -p results
 
 # Delete any old plots in the folder so evo doesn't pause and ask to overwrite
-rm -f results/*.png
+rm -f results_v2/*.png
 echo " Results folder ready!"
 echo ""
 
@@ -46,23 +46,23 @@ echo "=================================================="
 echo "GENERATING CLEAN TRAJECTORY PLOT (evo_traj)"
 echo "=================================================="
 # Added 'results/' before the filename 
-evo_traj tum results/estimated_trajectory.txt \
+evo_traj tum results_v2/estimated_trajectory.txt \
     --ref rgbd_dataset_freiburg1_xyz/groundtruth.txt \
     --plot \
     --plot_mode xy \
     --align \
-    --save_plot results/clean_trajectory.png
+    --save_plot results_v2/clean_trajectory.png
 
 echo ""
 echo "=================================================="
 echo "GENERATING ERROR HEATMAP PLOT (evo_ape)"
 echo "=================================================="
 # Notice we added 'results/' before the filename too
-evo_ape tum rgbd_dataset_freiburg1_xyz/groundtruth.txt results/estimated_trajectory.txt \
+evo_ape tum rgbd_dataset_freiburg1_xyz/groundtruth.txt results_v2/estimated_trajectory.txt \
     --plot \
     --plot_mode xy \
     --align \
-    --save_plot results/error_heatmap.png
+    --save_plot results_v2/error_heatmap.png
 
 #  finds any .png in the CURRENT folder (navio) and deletes them.
 # It does NOT touch the files inside the /results folder.
