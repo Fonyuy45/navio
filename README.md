@@ -3,23 +3,9 @@
 A frame-to-frame RGB-D Visual Odometry pipeline implemented in C++17 using Eigen and OpenCV, evaluated on the TUM RGB-D benchmark dataset.
 ---
 
-## Trajectory Comparison
-
-<p align="center">
-  <img src="results/clean_trajectory_xyz.png" width="48%" alt="Translation Trajectory"/>
-  &nbsp;
-  <img src="results/clean_trajectory_rpy.png" width="48%" alt="Angular Trajectory"/>
-</p>
-<p align="center">
-  <em> Translation trajectory (metres) &nbsp;&nbsp; Angular trajectory (degrees)</em>
-</p>
-
-> Pure frame-to-frame VO without loop closure or bundle adjustment.
-> Results are competitive with published RGB-D VO baselines on this sequence.
-
 ## Results
 
-### V1 — Frame-to-Frame Visual Odometry
+### V1 - Frame-to-Frame Visual Odometry
 
 Evaluated on TUM RGB-D fr1/xyz (792 frames).
 
@@ -29,7 +15,25 @@ Evaluated on TUM RGB-D fr1/xyz (792 frames).
 | RPE Translational RMSE | 0.071 m |
 | RPE Rotational RMSE | 3.51 deg |
 
-### V2 — Visual Odometry with Local Bundle Adjustment
+### Trajectory Comparison (V1 vs Ground Truth)
+
+
+<table>
+  <tr>
+    <td align="center"><b>Translation (metres)</b></td>
+    <td align="center"><b>Rotation (degrees)</b></td>
+  </tr>
+  <tr>
+    <td><img src="results/clean_trajectory_xyz.png" width="450%"/></td>
+    <td><img src="results/clean_trajectory_rpy.png" width="100%"/></td>
+  </tr>
+</table>
+
+
+> Pure frame-to-frame VO without bundle adjustment.
+> Results are competitive with published RGB-D VO baselines on this sequence.
+
+### V2 - Visual Odometry with Local Bundle Adjustment
 
 | Metric | Value |
 |--------|-------|
@@ -43,8 +47,17 @@ V2 achieves results competitive with ORB-SLAM2 (0.016m ATE)
 using a simpler pipeline without loop closure.
 
 ### Trajectory Comparison (V2 vs Ground Truth)
-![XYZ Translation](results_v2/clean_trajectory_xyz.png)
-![RPY Rotation](results_v2/clean_trajectory_rpy.png)
+
+<table>
+  <tr>
+    <td align="center"><b>Translation (metres)</b></td>
+    <td align="center"><b>Rotation (degrees)</b></td>
+  </tr>
+  <tr>
+    <td><img src="results_v2/clean_trajectory_xyz.png" width="100%"/></td>
+    <td><img src="results_v2/clean_trajectory_rpy.png" width="100%"/></td>
+  </tr>
+</table>
 
 ---
 ## Pipeline
