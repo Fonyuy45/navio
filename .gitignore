@@ -9,3 +9,5 @@ __pycache__/
 estimated_trajectory.txtrgbd_dataset_freiburg2_desk/
 results_v2/aligned_trajectory.txt
 results_v2/aligned_groundtruth.txt
+results/estimated_trajectory.txt
+results_v2/estimated_trajectory.txt
