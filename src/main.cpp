@@ -59,7 +59,7 @@ int main() {
         // Camera parameters are stored in YAML rather than hardcoded to allow
         // the same binary to run on different sensors without recompilation.
 
-        YAML::Node config = YAML::LoadFile("../config/camera_params.yaml");
+        YAML::Node config = YAML::LoadFile("../config/camera_params_fr2.yaml");
 
         const double fx          = config["fx"].as<double>();
         const double fy          = config["fy"].as<double>();
@@ -110,7 +110,7 @@ int main() {
         // pairs. Without association, RGB and depth timestamps would not
         // align — causing depth values to correspond to the wrong RGB frame.
 
-        std::fstream assoc_file("../rgbd_dataset_freiburg1_xyz/associated.txt");
+        std::fstream assoc_file("../rgbd_dataset_freiburg2_desk/associated.txt");
         if (!assoc_file.is_open()) {
             throw std::runtime_error("Cannot open associated.txt");
         }
@@ -125,10 +125,10 @@ int main() {
             std::istringstream ss(line);
             std::string ts_rgb, rgb_file, ts_depth, depth_file;
             if (ss >> ts_rgb >> rgb_file >> ts_depth >> depth_file) {
-                rgb_paths.push_back(
-                    "../rgbd_dataset_freiburg1_xyz/" + rgb_file);
-                depth_paths.push_back(
-                    "../rgbd_dataset_freiburg1_xyz/" + depth_file);
+
+            rgb_paths.push_back("../rgbd_dataset_freiburg2_desk/" + rgb_file);
+            depth_paths.push_back("../rgbd_dataset_freiburg2_desk/" + depth_file);
+
                 timestamps.push_back(std::stod(ts_rgb));
             }
         }
@@ -382,7 +382,7 @@ int main() {
         // Only frames with a confirmed pose are written — skipped frames
         // (tracking lost or physics violation) are omitted.
 
-        std::ofstream traj_file("../results_v2/estimated_trajectory.txt");
+        std::ofstream traj_file("../results_fr2/estimated_trajectory.txt");
         for (std::size_t i = 0; i < timestamps.size(); ++i) {
             auto it = frame_poses.find(static_cast<int>(i));
             if (it == frame_poses.end()) continue;
