@@ -1,0 +1,18 @@
+# TUM RGB-D Benchmark — freiburg2 camera intrinsics
+# Source: https://cvg.cit.tum.de/data/datasets/rgbd-dataset/file_formats
+# Camera: Microsoft Kinect
+
+fx: 520.9
+fy: 521.0
+cx: 325.1
+cy: 249.7
+
+# Depth scale — raw depth value / 5000 = metres
+depth_scale: 5000.0
+
+# Distortion coefficients (radial-tangential)
+k1:  0.2312
+k2: -0.7849
+p1: -0.0033
+p2: -0.0001
+k3:  0.9172
