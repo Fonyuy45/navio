@@ -398,7 +398,7 @@ int main() {
                       << q.w() << "\n";
         }
         traj_file.close();
-        std::cout << "Trajectory saved to results_v2/estimated_trajectory.txt\n";
+        std::cout << "Trajectory saved to results_fr2/estimated_trajectory.txt\n";
 
     } catch (const std::exception& e) {
         std::cerr << "Fatal Error: " << e.what() << "\n";
